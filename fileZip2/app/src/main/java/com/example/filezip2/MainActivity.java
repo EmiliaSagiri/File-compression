@@ -23,9 +23,8 @@ import java.util.zip.ZipEntry;
 
 public class MainActivity extends Activity {
     private ProgressBar progressBar1;
-    private  ZipListener listener;
-    public static Context mContext;
     private TextView textView;
+    private TextView textView2;
     @SuppressLint("HandlerLeak")
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -60,13 +59,15 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textView=findViewById(R.id.sb);
+        textView2=findViewById(R.id.time);
         progressBar1=findViewById(R.id.probar);
         Thread th2 = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-//                     Zip4Util.zip("/vr/1.jpeg","/vr/ASR/a.zip","ljj666");
-                    Zip4Util.unZip("/vr/ASR/a.zip", "/vr/ASR", "ljj666", handler);
+//                       Zip4Util.zip("/vr/1.jpeg","/vr/ASR/ljj.zip","ljj666");
+                        Zip4Util.addFile("/vr/2.jpeg", "2.jpeg","/vr/ASR/ljj.zip",handler);
+//                         Zip4Util.unZip("/vr/ASR/ljj.zip","/vr/ASR","ljj666",handler);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

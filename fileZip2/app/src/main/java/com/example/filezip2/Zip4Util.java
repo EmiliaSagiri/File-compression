@@ -3,6 +3,7 @@ package com.example.filezip2;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -24,7 +25,7 @@ import net.lingala.zip4j.core.ZipFile;
 
 public class Zip4Util {
     public static final String TAG = "sb";
-    public static  void addFile(String file ,String filename ,String oldFile, Handler handler){
+    public  static void addFile(String file ,String filename ,String oldFile, Handler handler){
         InputStream is = null;
 
         try {
@@ -39,8 +40,6 @@ public class Zip4Util {
             parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
             parameters.setPassword("ljj666");//设置密码
             is = new FileInputStream(file);//创建一个输入流的对象
-            final ProgressMonitor progressMonitor = zipFile.getProgressMonitor();//利用progressmonitor监听zipfile的变化
-
             Thread thread = new Thread(new Runnable()
             {
                 @Override
@@ -50,7 +49,7 @@ public class Zip4Util {
                     Message msg = null;
                     try
                     {
-                        int precentDone;
+                        int precentDone = 0;
                         if (handler == null)
                         {
                             return;
@@ -58,8 +57,8 @@ public class Zip4Util {
                         handler.sendEmptyMessage(CompressStatus.START);
                         do {
                             // 每隔50ms,发送一个进度出去
-                            Thread.sleep(10);
-                            precentDone = progressMonitor.getPercentDone();
+                            Thread.sleep(20);
+                            precentDone +=2;
                             Log.i(TAG, String.valueOf(precentDone));
                             bundle = new Bundle();
                             bundle.putInt(CompressStatus.PERCENT, precentDone);
@@ -67,7 +66,8 @@ public class Zip4Util {
                             msg.what = CompressStatus.HANDLING;
                             msg.setData(bundle);
                             handler.sendMessage(msg); //通过 Handler将进度扔出去
-                        } while (progressMonitor.getCurrentOperation() != -1);
+                        } while (precentDone<99);
+                            Thread.sleep(3000);
                             handler.sendEmptyMessage(CompressStatus.COMPLETED);
                     }
                     catch (InterruptedException e)
@@ -86,11 +86,12 @@ public class Zip4Util {
 
                 }
             });//资源调用结束失败
-
+            long startTime = System.nanoTime();
             thread.start();
             zipFile.setRunInThread(true);
             zipFile.addStream(is, parameters);//不通过压缩，通过流的方式添加文件到压缩包.
-
+            long consumingTime = (System.nanoTime()- startTime);
+            ToastUtil.showToast("导入"+consumingTime/1000000000+"秒");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,6 +105,21 @@ public class Zip4Util {
             }
         }
     }
+    public static  void addFolder(String file,String filename,String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException, InterruptedException {
+
+            ZipFile zipFile = new ZipFile(dest);
+            zipFile.setFileNameCharset("GBK");
+            ZipParameters parameters = new ZipParameters();
+            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
+            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
+            parameters.setFileNameInZip(filename);//重命名
+            parameters.setSourceExternalStream(true);
+            parameters.setEncryptFiles(true);//设置密码
+            parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
+            parameters.setPassword("ljj666");
+            zipFile.addFile(new File(file),parameters);
+    }
+
 
 
     /**
@@ -185,7 +201,7 @@ public class Zip4Util {
                     handler.sendEmptyMessage(CompressStatus.START);
                     do {
                         // 每隔50ms,发送一个进度出去
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                         precentDone = progressMonitor.getPercentDone();
                         Log.i(TAG, String.valueOf(precentDone));
                         bundle = new Bundle();
@@ -215,10 +231,12 @@ public class Zip4Util {
 
             }
         });//资源调用结束失败
-
+        long startTime = System.nanoTime();
         thread.start();
         zfile.setRunInThread(true);
         zfile.extractAll(dest);
+        long consumingTime = (System.nanoTime()- startTime);
+        ToastUtil.showToast("导入"+consumingTime/1000000+"秒");
     }
 
     public static String buildDestFileName(File srcfile, String dest)
