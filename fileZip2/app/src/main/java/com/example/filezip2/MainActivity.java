@@ -33,18 +33,24 @@ public class MainActivity extends Activity {
             switch (msg.what) {
                 case CompressStatus.START:
                     textView.setText("start!");
+                    progressBar1.setVisibility(View.VISIBLE);
                     break;
                 case CompressStatus.HANDLING:
                     Bundle b = msg.getData();
-                    textView.setText(b.getInt(CompressStatus.PERCENT) + "%");
+                    int percent = b.getInt(CompressStatus.PERCENT);
+                    textView.setText(percent+ "%");
+                    progressBar1.setProgress(percent);
 //                    progressBar1.setProgress(Integer.parseInt(CompressStatus.PERCENT));
 //                    progressBar1.setMax(100);
                     break;
                 case CompressStatus.COMPLETED:
                     textView.setText("end!");
+                    progressBar1.setVisibility(View.INVISIBLE);
                     break;
                 case CompressStatus.ERROR:
-                    textView.setText("error");
+                    Bundle bundle =msg.getData();
+                    int error = bundle.getInt(String.valueOf(CompressStatus.ERROR));
+                    textView.setText(error);
                     break;
             }
         };
@@ -59,8 +65,8 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 try {
-//                         Zip4Util.zip("/vr/1.jpeg","/vr/ASR/.zip","123456");
-                    Zip4Util.addFile("/vr/3.jpeg", "3.jpeg", "/vr/ASR/2.zip", handler);
+//                     Zip4Util.zip("/vr/1.jpeg","/vr/ASR/a.zip","ljj666");
+                    Zip4Util.unZip("/vr/ASR/a.zip", "/vr/ASR", "ljj666", handler);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

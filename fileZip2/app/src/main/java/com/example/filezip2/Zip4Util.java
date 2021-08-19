@@ -31,16 +31,16 @@ public class Zip4Util {
             ZipFile zipFile = new ZipFile(oldFile);
             zipFile.setFileNameCharset("GBK");
             ZipParameters parameters = new ZipParameters();
-            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
-            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
-            parameters.setFileNameInZip(filename);
+            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
+            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
+            parameters.setFileNameInZip(filename);//重命名
             parameters.setSourceExternalStream(true);
             parameters.setEncryptFiles(true);
             parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
-            parameters.setPassword("ljj666");
-            is = new FileInputStream(file);
-            zipFile.addStream(is, parameters);//不通过压缩，通过流的方式添加文件到压缩包.
-            final ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
+            parameters.setPassword("ljj666");//设置密码
+            is = new FileInputStream(file);//创建一个输入流的对象
+            final ProgressMonitor progressMonitor = zipFile.getProgressMonitor();//利用progressmonitor监听zipfile的变化
+
             Thread thread = new Thread(new Runnable()
             {
                 @Override
@@ -50,7 +50,7 @@ public class Zip4Util {
                     Message msg = null;
                     try
                     {
-                        int precentDone = 0;
+                        int precentDone;
                         if (handler == null)
                         {
                             return;
@@ -58,7 +58,7 @@ public class Zip4Util {
                         handler.sendEmptyMessage(CompressStatus.START);
                         do {
                             // 每隔50ms,发送一个进度出去
-                            Thread.sleep(50);
+                            Thread.sleep(10);
                             precentDone = progressMonitor.getPercentDone();
                             Log.i(TAG, String.valueOf(precentDone));
                             bundle = new Bundle();
@@ -67,10 +67,8 @@ public class Zip4Util {
                             msg.what = CompressStatus.HANDLING;
                             msg.setData(bundle);
                             handler.sendMessage(msg); //通过 Handler将进度扔出去
-                        } while (precentDone < 100);
-                        if( progressMonitor.getCurrentOperation() == -1){
+                        } while (progressMonitor.getCurrentOperation() != -1);
                             handler.sendEmptyMessage(CompressStatus.COMPLETED);
-                        }
                     }
                     catch (InterruptedException e)
                     {
@@ -91,6 +89,8 @@ public class Zip4Util {
 
             thread.start();
             zipFile.setRunInThread(true);
+            zipFile.addStream(is, parameters);//不通过压缩，通过流的方式添加文件到压缩包.
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,7 +149,7 @@ public class Zip4Util {
      * @param passwd 密码
      * @throws ZipException 抛出异常
      */
-    public static void unZip(String zipfile, String dest, String passwd) throws ZipException, net.lingala.zip4j.exception.ZipException {
+    public static void unZip(String zipfile, String dest, String passwd,Handler handler) throws ZipException, net.lingala.zip4j.exception.ZipException {
         ZipFile zfile = new ZipFile(zipfile);
         if (!zfile.isValidZipFile())
         {
@@ -166,6 +166,58 @@ public class Zip4Util {
         {
             zfile.setPassword(passwd.toCharArray());
         }
+        final ProgressMonitor progressMonitor = zfile.getProgressMonitor();//利用progressmonitor监听zipfile的变化
+
+        Thread thread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                Bundle bundle = null;
+                Message msg = null;
+                try
+                {
+                    int precentDone;
+                    if (handler == null)
+                    {
+                        return;
+                    }
+                    handler.sendEmptyMessage(CompressStatus.START);
+                    do {
+                        // 每隔50ms,发送一个进度出去
+                        Thread.sleep(10);
+                        precentDone = progressMonitor.getPercentDone();
+                        Log.i(TAG, String.valueOf(precentDone));
+                        bundle = new Bundle();
+                        bundle.putInt(CompressStatus.PERCENT, precentDone);
+                        msg = new Message();
+                        msg.what = CompressStatus.HANDLING;
+                        msg.setData(bundle);
+                        handler.sendMessage(msg); //通过 Handler将进度扔出去
+                    } while (precentDone<100);
+                    if(progressMonitor.getCurrentOperation() != -1){
+                        handler.sendEmptyMessage(CompressStatus.COMPLETED);
+                    }
+                }
+                catch (InterruptedException e)
+                {
+                    bundle = new Bundle();
+                    bundle.putString(CompressStatus.ERROR_COM, e.getMessage());
+                    msg = new Message();
+                    msg.what = CompressStatus.ERROR;
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
+                    e.printStackTrace();
+                } finally {
+                    Log.i("666", "爬");
+
+                }
+
+            }
+        });//资源调用结束失败
+
+        thread.start();
+        zfile.setRunInThread(true);
         zfile.extractAll(dest);
     }
 
