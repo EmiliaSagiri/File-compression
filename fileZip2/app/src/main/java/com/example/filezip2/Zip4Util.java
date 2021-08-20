@@ -3,23 +3,17 @@ package com.example.filezip2;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
-
-import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jConstants;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import net.lingala.zip4j.core.ZipFile;
 
@@ -67,7 +61,7 @@ public class Zip4Util {
                             msg.setData(bundle);
                             handler.sendMessage(msg); //通过 Handler将进度扔出去
                         } while (precentDone<99);
-                            Thread.sleep(3000);
+                            Thread.sleep(2000);
                             handler.sendEmptyMessage(CompressStatus.COMPLETED);
                     }
                     catch (InterruptedException e)
@@ -86,12 +80,11 @@ public class Zip4Util {
 
                 }
             });//资源调用结束失败
-            long startTime = System.nanoTime();
             thread.start();
-            zipFile.setRunInThread(true);
+            long startTime2 = System.currentTimeMillis();
             zipFile.addStream(is, parameters);//不通过压缩，通过流的方式添加文件到压缩包.
-            long consumingTime = (System.nanoTime()- startTime);
-            ToastUtil.showToast("导入"+consumingTime/1000000000+"秒");
+            long consumingTime2 = (System.currentTimeMillis()- startTime2);
+            ToastUtil.showToast("导入"+consumingTime2+"毫秒");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,19 +98,74 @@ public class Zip4Util {
             }
         }
     }
-    public static  void addFolder(String file,String filename,String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException, InterruptedException {
+    public static  void testFile(String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException {
 
             ZipFile zipFile = new ZipFile(dest);
             zipFile.setFileNameCharset("GBK");
+            ArrayList<File> list= new ArrayList<>();
+            list.add(new File("/vr/2.jpeg"));
+            list.add(new File("/vr/3.jpeg"));
+
             ZipParameters parameters = new ZipParameters();
             parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
             parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
-            parameters.setFileNameInZip(filename);//重命名
             parameters.setSourceExternalStream(true);
+
             parameters.setEncryptFiles(true);//设置密码
             parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
             parameters.setPassword("ljj666");
-            zipFile.addFile(new File(file),parameters);
+
+            final ProgressMonitor progressMonitor =zipFile.getProgressMonitor();
+            Thread thread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                Bundle bundle = null;
+                Message msg = null;
+                try
+                {
+                    int precentDone;
+                    if (handler == null)
+                    {
+                        return;
+                    }
+                    handler.sendEmptyMessage(CompressStatus.START);
+                    do {
+                        // 每隔50ms,发送一个进度出去
+                        Thread.sleep(50);
+                        precentDone = progressMonitor.getPercentDone();
+                        Log.i(TAG, String.valueOf(precentDone));
+                        bundle = new Bundle();
+                        bundle.putInt(CompressStatus.PERCENT, precentDone);
+                        msg = new Message();
+                        msg.what = CompressStatus.HANDLING;
+                        msg.setData(bundle);
+                        handler.sendMessage(msg); //通过 Handler将进度扔出去
+                    } while (precentDone<100);
+                    if(progressMonitor.getCurrentOperation() != -1){
+                        handler.sendEmptyMessage(CompressStatus.COMPLETED);
+                    }
+                }
+                catch (InterruptedException e)
+                {
+                    bundle = new Bundle();
+                    bundle.putString(CompressStatus.ERROR_COM, e.getMessage());
+                    msg = new Message();
+                    msg.what = CompressStatus.ERROR;
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
+                    e.printStackTrace();
+                } finally {
+                    Log.i("666", "爬");
+
+                }
+
+            }
+        });//资源调用结束失败
+         thread.start();
+            zipFile.setRunInThread(true);
+            zipFile.addFiles(list,parameters);
     }
 
 
@@ -231,13 +279,14 @@ public class Zip4Util {
 
             }
         });//资源调用结束失败
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         thread.start();
         zfile.setRunInThread(true);
         zfile.extractAll(dest);
-        long consumingTime = (System.nanoTime()- startTime);
-        ToastUtil.showToast("导入"+consumingTime/1000000+"秒");
+        long consumingTime = (System.currentTimeMillis()- startTime);
+        ToastUtil.showToast("导入"+consumingTime+"毫秒");
     }
+
 
     public static String buildDestFileName(File srcfile, String dest)
     {

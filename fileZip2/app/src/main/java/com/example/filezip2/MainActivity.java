@@ -65,9 +65,11 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 try {
-//                       Zip4Util.zip("/vr/1.jpeg","/vr/ASR/ljj.zip","ljj666");
-                        Zip4Util.addFile("/vr/2.jpeg", "2.jpeg","/vr/ASR/ljj.zip",handler);
-//                         Zip4Util.unZip("/vr/ASR/ljj.zip","/vr/ASR","ljj666",handler);
+//                         Zip4Util.zip("/vr/sb/sb.txt","/vr/ASR/2.zip","ljj666");
+ //                        Zip4Util.addFile("/vr/1.jpeg","1.jpeg","/vr/ASR/2.zip",handler);
+//                          Zip4Util.testFile("/vr/ASR/1.zip", handler);
+                         Zip4Util.unZip("/vr/ASR/1.zip","/vr/ASR","ljj666",handler);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
