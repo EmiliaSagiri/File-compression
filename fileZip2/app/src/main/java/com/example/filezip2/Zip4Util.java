@@ -7,19 +7,22 @@ import android.util.Log;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jConstants;
+
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
+import java.util.zip.ZipInputStream;
 import net.lingala.zip4j.core.ZipFile;
 
 public class Zip4Util {
     public static final String TAG = "sb";
-    public  static void addFile(String file ,String filename ,String oldFile, Handler handler){
+    public  static void addFile(String file ,String filename ,String oldFile,String password , Handler handler){
         InputStream is = null;
 
         try {
@@ -30,9 +33,13 @@ public class Zip4Util {
             parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
             parameters.setFileNameInZip(filename);//重命名
             parameters.setSourceExternalStream(true);
-            parameters.setEncryptFiles(true);
-            parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
-            parameters.setPassword("ljj666");//设置密码
+            if (password != null){
+                parameters.setEncryptFiles(true);
+                parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
+                parameters.setPassword(password.toCharArray());//设置密码
+            }
+
+           // zipFile.addFolder("/vr/sb",parameters);//添加文件夹"/vr/sb"
             is = new FileInputStream(file);//创建一个输入流的对象
             Thread thread = new Thread(new Runnable()
             {
@@ -51,9 +58,8 @@ public class Zip4Util {
                         handler.sendEmptyMessage(CompressStatus.START);
                         do {
                             // 每隔50ms,发送一个进度出去
-                            Thread.sleep(20);
+                            Thread.sleep(50);
                             precentDone +=2;
-                            Log.i(TAG, String.valueOf(precentDone));
                             bundle = new Bundle();
                             bundle.putInt(CompressStatus.PERCENT, precentDone);
                             msg = new Message();
@@ -61,7 +67,7 @@ public class Zip4Util {
                             msg.setData(bundle);
                             handler.sendMessage(msg); //通过 Handler将进度扔出去
                         } while (precentDone<99);
-                            Thread.sleep(2000);
+                            Thread.sleep(4000);
                             handler.sendEmptyMessage(CompressStatus.COMPLETED);
                     }
                     catch (InterruptedException e)
@@ -98,6 +104,46 @@ public class Zip4Util {
             }
         }
     }
+    public static  ArrayList<String> fileEntry(String dest) throws IOException {
+        ArrayList<String> sum=new ArrayList<>();
+        InputStream in = null;
+        try {
+            in = new BufferedInputStream(new FileInputStream(dest));
+            int size = getSize(dest);
+            ZipInputStream zin = new ZipInputStream(in);
+            for(int i = 0; i<size; i++){
+                sum.add(zin.getNextEntry().getName());
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        assert in != null;
+        in.close();
+      return  sum;
+    }
+
+    public static int getSize(String file) throws Exception {
+        ZipFile zf = new ZipFile(file);
+        InputStream in = new BufferedInputStream(new FileInputStream(file));
+        ZipInputStream zin = new ZipInputStream(in);
+        ZipEntry ze;
+        int i=0;
+        while ((ze = zin.getNextEntry()) != null) {
+            if (ze.isDirectory()) {
+                //Do nothing
+            } else {
+                Log.e("666","file - " + ze.getName() + " : " + ze.getSize() + " bytes");
+                System.out.println();
+            }
+            i++;
+        }
+        zin.closeEntry();
+        in.close();
+        return i;
+    }
+
     public static  void testFile(String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException {
 
             ZipFile zipFile = new ZipFile(dest);
@@ -284,7 +330,7 @@ public class Zip4Util {
         zfile.setRunInThread(true);
         zfile.extractAll(dest);
         long consumingTime = (System.currentTimeMillis()- startTime);
-        ToastUtil.showToast("导入"+consumingTime+"毫秒");
+        ToastUtil.showToast("解压"+consumingTime+"毫秒");
     }
 
 

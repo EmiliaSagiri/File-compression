@@ -5,33 +5,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="@drawable/ljj">
+    android:background="@drawable/ljj"
+    android:orientation="vertical">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/sb"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="50dp"
         android:layout_marginStart="200dp"
         android:textColor="@color/purple_700"
         android:textSize="30sp"
         android:layout_marginLeft="200dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/time"
-        android:layout_marginTop="100dp"
-        android:textColor="@color/purple_700"
-        android:textSize="30sp" />
     <ProgressBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="300dp"
+        android:layout_marginTop="100dp"
         android:id="@+id/probar"
         style="?android:attr/progressBarStyleHorizontal"
         android:progress="0"
         />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:orientation="horizontal">
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_weight="1"
+            android:id="@+id/names"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:layout_weight="1"
+            android:id="@+id/md5s"/>
+    </LinearLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/add"
+        android:text="添加"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp" />
 
 
 </LinearLayout>
