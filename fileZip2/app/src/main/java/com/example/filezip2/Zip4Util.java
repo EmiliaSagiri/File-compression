@@ -22,7 +22,12 @@ import net.lingala.zip4j.core.ZipFile;
 
 public class Zip4Util {
     public static final String TAG = "sb";
-    public  static void addFile(String file ,String filename ,String oldFile,String password , Handler handler){
+    /*
+    *如果file是文件夹，使用如下方案
+    * 遍历该文件夹，是文件就添加到数组，是文件夹就重复遍历
+    * Arraylist<File> a=new Arraylist<File>();
+     */
+    public  static void addFile(String file ,String oldFile,String password , Handler handler){
         InputStream is = null;
 
         try {
@@ -31,7 +36,7 @@ public class Zip4Util {
             ZipParameters parameters = new ZipParameters();
             parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
             parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
-            parameters.setFileNameInZip(filename);//重命名
+            parameters.setFileNameInZip(file.substring(file.lastIndexOf("/")+1));
             parameters.setSourceExternalStream(true);
             if (password != null){
                 parameters.setEncryptFiles(true);
@@ -131,38 +136,67 @@ public class Zip4Util {
         ZipEntry ze;
         int i=0;
         while ((ze = zin.getNextEntry()) != null) {
-            if (ze.isDirectory()) {
-                //Do nothing
-            } else {
-                Log.e("666","file - " + ze.getName() + " : " + ze.getSize() + " bytes");
-                System.out.println();
-            }
             i++;
         }
         zin.closeEntry();
         in.close();
         return i;
     }
+    /**
+     * 压缩
+     * @param srcFile 文件或文件夹目录
+     * @param dest 压缩包目录
+     * @param passwd 密码
+     * @throws ZipException 抛出异常
+     */
+    public static void zip(String srcFile, String dest, String passwd) throws ZipException, net.lingala.zip4j.exception.ZipException {
+
+        File srcfile = new File(srcFile);
+
+        //创建目标文件
+        String destname = buildDestFileName(srcfile, dest);
+        ZipParameters par = new ZipParameters();//新建对象
+        par.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
+        par.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
+
+        if (passwd != null)
+        {
+            par.setEncryptFiles(true);
+            par.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
+            par.setPassword(passwd.toCharArray());//将字符串转换成字符数组
+        }
+
+        ZipFile zipfile = new ZipFile(destname);
+
+        if (srcfile.isDirectory())
+        {
+            zipfile.addFolder(srcfile, par);
+        }
+        else
+        {
+            zipfile.addFile(srcfile, par);
+        }
+    }
 
     public static  void testFile(String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException {
 
-            ZipFile zipFile = new ZipFile(dest);
-            zipFile.setFileNameCharset("GBK");
-            ArrayList<File> list= new ArrayList<>();
-            list.add(new File("/vr/2.jpeg"));
-            list.add(new File("/vr/3.jpeg"));
+        ZipFile zipFile = new ZipFile(dest);
+        zipFile.setFileNameCharset("GBK");
+        ArrayList<File> list= new ArrayList<>();
+        list.add(new File("/vr/2.jpeg"));
+        list.add(new File("/vr/3.jpeg"));
 
-            ZipParameters parameters = new ZipParameters();
-            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
-            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
-            parameters.setSourceExternalStream(true);
+        ZipParameters parameters = new ZipParameters();
+        parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
+        parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
+        parameters.setSourceExternalStream(true);
 
-            parameters.setEncryptFiles(true);//设置密码
-            parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
-            parameters.setPassword("ljj666");
+        parameters.setEncryptFiles(true);//设置密码
+        parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
+        parameters.setPassword("ljj666");
 
-            final ProgressMonitor progressMonitor =zipFile.getProgressMonitor();
-            Thread thread = new Thread(new Runnable()
+        final ProgressMonitor progressMonitor =zipFile.getProgressMonitor();
+        Thread thread = new Thread(new Runnable()
         {
             @Override
             public void run()
@@ -209,49 +243,10 @@ public class Zip4Util {
 
             }
         });//资源调用结束失败
-         thread.start();
-            zipFile.setRunInThread(true);
-            zipFile.addFiles(list,parameters);
+        thread.start();
+        zipFile.setRunInThread(true);
+        zipFile.addFiles(list,parameters);
     }
-
-
-
-    /**
-     * 压缩
-     * @param srcFile 文件或文件夹目录
-     * @param dest 压缩包目录
-     * @param passwd 密码
-     * @throws ZipException 抛出异常
-     */
-    public static void zip(String srcFile, String dest, String passwd) throws ZipException, net.lingala.zip4j.exception.ZipException {
-
-        File srcfile = new File(srcFile);
-
-        //创建目标文件
-        String destname = buildDestFileName(srcfile, dest);
-        ZipParameters par = new ZipParameters();//新建对象
-        par.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);//压缩方式
-        par.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);//压缩级别
-
-        if (passwd != null)
-        {
-            par.setEncryptFiles(true);
-            par.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
-            par.setPassword(passwd.toCharArray());//将字符串转换成字符数组
-        }
-
-        ZipFile zipfile = new ZipFile(destname);
-
-        if (srcfile.isDirectory())
-        {
-            zipfile.addFolder(srcfile, par);
-        }
-        else
-        {
-            zipfile.addFile(srcfile, par);
-        }
-    }
-
     /**
      * 解压
      * @param zipfile 压缩包文件

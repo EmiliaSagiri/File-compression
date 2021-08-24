@@ -10,8 +10,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,14 +28,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 
 public class MainActivity extends Activity {
     private ProgressBar progressBar1;
     private TextView textView;
     private  Button btn;
+    private static final String[] x={"/vr/1.jpeg","/vr/2.jpeg","/vr/3.jpeg","/vr/sb/sb.txt"};
+    private TextView tv2 ;
+    private Spinner spinner;
+    private ArrayAdapter<String> adapter;
     static List<Product> productList = new ArrayList<>();
     static List<Product> productList2 = new ArrayList<>();
     public final static String TAG = "666";
+    public final static int LJJ = 1;
     @SuppressLint("HandlerLeak")
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -59,8 +68,37 @@ public class MainActivity extends Activity {
                     int error = bundle.getInt(String.valueOf(CompressStatus.ERROR));
                     textView.setText(error);
                     break;
+
             }
         };
+    };
+    @SuppressLint("HandlerLeak")
+    final Handler sb =new Handler() {
+        public void handleMessage(Message msg2) {
+            super.handleMessage(msg2);
+            switch (msg2.what) {
+                case LJJ:
+                    int size = 0;
+                    try {
+                        size = Zip4Util.getSize("/vr/ASR/b.zip");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    for (int i = 0; i < size; i++) {
+                        Product a = null;
+                        try {
+                            a = new Product(Zip4Util.fileEntry("/vr/ASR/b.zip").get(i));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        productList2.add(a);
+                    }
+                    setData();
+                    break;
+
+            }
+        };
+
     };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +107,13 @@ public class MainActivity extends Activity {
         textView = findViewById(R.id.sb);
         btn = findViewById(R.id.add);
         progressBar1 = findViewById(R.id.probar);
+        tv2 = findViewById(R.id.Spinnertext);
+        spinner = findViewById(R.id.hh);
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,x);//设置下拉列表的风格
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);//将adapter 添加到spinner中
+        spinner.setAdapter(adapter);//添加事件Spinner事件监听
+        spinner.setOnItemSelectedListener(new SpinnerSelectedListener());//设置默认值
+        spinner.setVisibility(View.VISIBLE);
         RecyclerView recyclerView1 = findViewById(R.id.names);
         MyAdapter adapter1 = new MyAdapter(productList);
         recyclerView1.setAdapter(adapter1);
@@ -77,17 +122,16 @@ public class MainActivity extends Activity {
         recyclerView1.setLayoutManager(layoutManagera);
         layoutManagera.setOrientation(LinearLayoutManager.VERTICAL);
 
-
         int size = 0;
         try {
-            size = Zip4Util.getSize("/vr/ASR/2.zip");
+            size = Zip4Util.getSize("/vr/ASR/b.zip");
         } catch (Exception e) {
             e.printStackTrace();
         }
         for (int i = 0; i < size; i++) {
             Product a = null;
             try {
-                a = new Product(Zip4Util.fileEntry("/vr/ASR/2.zip").get(i));
+                a = new Product(Zip4Util.fileEntry("/vr/ASR/b.zip").get(i));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -98,7 +142,10 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 try {
-                    Zip4Util.addFile("/vr/2.jpeg", "2.jpeg", "/vr/ASR/2.zip", null, handler);
+                    Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/ASR/b.zip", null, handler);
+                    Message message2 = new Message();
+                    message2.what=LJJ;
+                    sb.sendMessage(message2);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -110,26 +157,21 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 th2.start();
                 Log.i(TAG, String.valueOf(productList2));
-                int size = 0;
-                try {
-                    size = Zip4Util.getSize("/vr/ASR/2.zip");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                for (int i = 0; i < size; i++) {
-                    Product a = null;
-                    try {
-                        a = new Product(Zip4Util.fileEntry("/vr/ASR/2.zip").get(i));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    productList2.add(a);
-                }
-                setData();
             }
 
         });
 
+    }
+    class SpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
+
+        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+                                   long arg3) {
+            tv2.setText(x[arg2]);
+
+        }
+
+        public void onNothingSelected(AdapterView<?> arg0) {
+        }
     }
     public void setData(){
         RecyclerView recyclerView2 = findViewById(R.id.md5s);
@@ -139,7 +181,4 @@ public class MainActivity extends Activity {
         recyclerView2.setLayoutManager(layoutManagerb);
         layoutManagerb.setOrientation(LinearLayoutManager.VERTICAL);
     }
-
-
-
 }

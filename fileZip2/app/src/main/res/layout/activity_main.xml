@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/sb"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="0dp"
         android:layout_marginStart="200dp"
         android:textColor="@color/purple_700"
         android:textSize="30sp"
@@ -20,23 +20,40 @@
     <ProgressBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="20dp"
         android:id="@+id/probar"
         style="?android:attr/progressBarStyleHorizontal"
         android:progress="0"
         />
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="添加前文件"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="添加后文件"/>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
         android:orientation="horizontal">
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="wrap_content"
-            android:layout_height="400dp"
+            android:layout_height="300dp"
             android:layout_weight="1"
             android:id="@+id/names"/>
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="wrap_content"
-            android:layout_height="400dp"
+            android:layout_height="300dp"
             android:layout_weight="1"
             android:id="@+id/md5s"/>
     </LinearLayout>
@@ -46,7 +63,22 @@
         android:id="@+id/add"
         android:text="添加"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="20dp"
+        android:textColor="@color/teal_200"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="这是什么鬼"
+        android:textSize="50sp"
+        android:textColor="@color/purple_700"
+        android:id="@+id/Spinnertext"/>
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:outlineAmbientShadowColor="@color/purple_700"
+        android:id="@+id/hh"/>
 
 
 </LinearLayout>
