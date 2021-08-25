@@ -45,6 +45,9 @@ public class MainActivity extends Activity {
     public final static int LJJ = 1;
     public final static int SB = 2;
     @SuppressLint("HandlerLeak")
+    /*
+    *handler进度条
+     */
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -74,6 +77,10 @@ public class MainActivity extends Activity {
             }
         };
     };
+    /*
+    *sb对应屏幕右边的recyclerview
+    * ljj对应屏幕左边的recyclerview（添加前）
+     */
     @SuppressLint("HandlerLeak")
     final Handler sb =new Handler() {
         public void handleMessage(Message msg2) {
@@ -81,7 +88,7 @@ public class MainActivity extends Activity {
             switch (msg2.what) {
                 case LJJ:
                     try {
-                        list = Zip4Util.fileEntry("/vr/test/1.zip");
+                        list = Zip4Util.fileEntry("/vr/test/5.zip");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -98,7 +105,7 @@ public class MainActivity extends Activity {
                     break;
                 case SB:
                     try {
-                        list = Zip4Util.fileEntry("/vr/test/1.zip");
+                        list = Zip4Util.fileEntry("/vr/test/5.zip");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -131,30 +138,34 @@ public class MainActivity extends Activity {
         LinearLayoutManager layoutManagera = new LinearLayoutManager(this);
         recyclerView1.setLayoutManager(layoutManagera);
         layoutManagera.setOrientation(LinearLayoutManager.VERTICAL);
-        Thread th2 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-//                     Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/1.zip", null, handler);
-                       Zip4Util.doZipFilesWithPassword(new File("/vr/sb"),"/vr/test/1.zip",null);
-//                      Zip4Util.zip("/vr/1.jpeg","/vr/test/1.zip",null);
-                    Message message2 = new Message();
-                    message2.what=LJJ;
-                    sb.sendMessage(message2);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Thread th2 = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/5.zip", null, handler);
+                            //                  Zip4Util.AddFolder("vr/sb","vr/test/4.zip",null);
+                            //                  Zip4Util.zip("/vr/1.jpeg","/vr/test/5.zip",null);
+                            Message message2 = new Message();
+                            message2.what=LJJ;
+                            sb.sendMessage(message2);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 th2.start();//线程开启，该方法只能用一次
+                productList2.clear();//清空数组，方便重复赋值
             }
         });
 
     }
+    /*
+    *spinner控制下拉框，调用数组X 并给textview控件赋值
+     */
     class SpinnerSelectedListener implements AdapterView.OnItemSelectedListener {
 
         public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,

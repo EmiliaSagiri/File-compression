@@ -10,7 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-
+/*
+ *适配器2
+ */
 public class MyAdapter2 extends RecyclerView.Adapter<MyAdapter2.ViewHolder>{
     private final List<Product> mProductList2;
     static class ViewHolder extends RecyclerView.ViewHolder {

@@ -23,10 +23,11 @@ import net.lingala.zip4j.core.ZipFile;
 
 public class Zip4Util {
     public static final String TAG = "sb";
-    public static File doZipFilesWithPassword(File folder, String destZipFile, String password) {
-        if (!folder.exists()) {
-            return null;
-        }
+    /*
+    *添加文件夹到压缩包
+    * folder 文件夹路径 destzipfile 压缩包路径 password 密码
+     */
+    public static void doZipfile(File folder, String destZipFile, String password) {
         ZipParameters parameters = new ZipParameters();
         // 压缩方式
         parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
@@ -34,23 +35,46 @@ public class Zip4Util {
         parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
         // 加密方式
         if (!TextUtils.isEmpty(password)) {
-            parameters.setEncryptFiles(true);//
+            parameters.setEncryptFiles(true);
             parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
             parameters.setPassword(password);
         }
         try {
             ZipFile zipFile = new ZipFile(destZipFile);
+            zipFile.setFileNameCharset("GBK");
             zipFile.addFolder(folder, parameters);
-            return zipFile.getFile();
         } catch (net.lingala.zip4j.exception.ZipException e) {
             e.printStackTrace();
-            return null;
         }
     }
+    /*
+     *添加文件夹到压缩包第二种方法，其实还有第三种方法还不会报错，以流的方式添加，不过是一个个文件添加，没有文件夹。
+     * folder 文件夹路径 dest 压缩包路径 password 密码
+     */
+    public static void AddFolder(String folder, String dest, String password) {
+        ZipFile zipFile = null ;
+        try {
+            zipFile = new ZipFile(dest);
+            zipFile.setFileNameCharset("GBK");
+            ZipParameters parameters = new ZipParameters();
+            parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+            parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+            if (password != null) {
+                parameters.setEncryptFiles(true);
+                parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
+                parameters.setPassword(password);
+            }
+            zipFile.addFolder(new File(folder), parameters);
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            e.printStackTrace();
+        }
+    }
+
     /*
     *如果file是文件夹，使用如下方案
     * 遍历该文件夹，是文件就添加到数组，是文件夹就重复遍历
     * Arraylist<File> a=new Arraylist<File>();
+    * file 文件路径 oldfile 压缩包路径 password 密码 handler 与主函数联系形成进度条
      */
     public  static void addFile(String file ,String oldFile,String password , Handler handler){
         InputStream is = null;
@@ -68,7 +92,9 @@ public class Zip4Util {
                 parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
                 parameters.setPassword(password.toCharArray());//设置密码
             }
-
+//            if (password != null){
+//                zipFile.addFolder("/vr/sb",parameters);//添加文件夹"/vr/sb"
+//            }
            // zipFile.addFolder("/vr/sb",parameters);//添加文件夹"/vr/sb"
             is = new FileInputStream(file);//创建一个输入流的对象
             Thread thread = new Thread(new Runnable()
@@ -134,9 +160,10 @@ public class Zip4Util {
             }
         }
     }
-    public static  void addFolder(String folder ,String dest,String password,String handler){
-
-    }
+    /*
+    *获取文件的文件名，用list集合存储
+    * dest 压缩包路径
+     */
     public static  ArrayList<String> fileEntry(String dest) throws IOException {
         ArrayList<String> sum=new ArrayList<>();
         InputStream in = new BufferedInputStream(new FileInputStream(dest));
@@ -144,20 +171,16 @@ public class Zip4Util {
         ZipEntry sb =null;
         try {
                while((sb = zin.getNextEntry())!= null) {
-                   if (sb.isDirectory()) {
-                       sum.add(String.valueOf(sb));
-                   } else {
                        sum.add(sb.getName());
-                   }
                }
-        } catch (FileNotFoundException e) {
+            in.close();
+            zin.close();
+        }
+        catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        assert in != null;
-        in.close();
-        zin.closeEntry();
       return  sum;
     }
     /**
@@ -195,7 +218,9 @@ public class Zip4Util {
             zipfile.addFile(srcfile, par);
         }
     }
-
+/*
+*这个没啥用
+ */
     public static  void testFile(String dest,Handler handler) throws IOException, net.lingala.zip4j.exception.ZipException {
 
         ZipFile zipFile = new ZipFile(dest);

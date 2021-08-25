@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.filezip2.Product;
 
 import java.util.List;
-
+/*
+*适配器
+ */
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private final List<Product> mProductList;
     static class ViewHolder extends RecyclerView.ViewHolder {

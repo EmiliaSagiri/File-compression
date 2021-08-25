@@ -5,9 +5,9 @@ import android.content.Context;
 import android.util.Log;
 
 /**
- * Created by yuanpk on 2018/7/10  15:09
- * <p>
- * Description:TODO
+ *
+ * 用与弹窗显示
+ *
  */
 
 public class InitApplication extends Application {
