@@ -3,6 +3,7 @@ package com.example.filezip2;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
@@ -22,6 +23,30 @@ import net.lingala.zip4j.core.ZipFile;
 
 public class Zip4Util {
     public static final String TAG = "sb";
+    public static File doZipFilesWithPassword(File folder, String destZipFile, String password) {
+        if (!folder.exists()) {
+            return null;
+        }
+        ZipParameters parameters = new ZipParameters();
+        // 压缩方式
+        parameters.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+        // 压缩级别
+        parameters.setCompressionLevel(Zip4jConstants.DEFLATE_LEVEL_NORMAL);
+        // 加密方式
+        if (!TextUtils.isEmpty(password)) {
+            parameters.setEncryptFiles(true);//
+            parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);
+            parameters.setPassword(password);
+        }
+        try {
+            ZipFile zipFile = new ZipFile(destZipFile);
+            zipFile.addFolder(folder, parameters);
+            return zipFile.getFile();
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     /*
     *如果file是文件夹，使用如下方案
     * 遍历该文件夹，是文件就添加到数组，是文件夹就重复遍历
@@ -29,7 +54,7 @@ public class Zip4Util {
      */
     public  static void addFile(String file ,String oldFile,String password , Handler handler){
         InputStream is = null;
-
+//        readFile(new File(file));
         try {
             ZipFile zipFile = new ZipFile(oldFile);
             zipFile.setFileNameCharset("GBK");
@@ -109,16 +134,22 @@ public class Zip4Util {
             }
         }
     }
+    public static  void addFolder(String folder ,String dest,String password,String handler){
+
+    }
     public static  ArrayList<String> fileEntry(String dest) throws IOException {
         ArrayList<String> sum=new ArrayList<>();
-        InputStream in = null;
+        InputStream in = new BufferedInputStream(new FileInputStream(dest));
+        ZipInputStream zin = new ZipInputStream(in);
+        ZipEntry sb =null;
         try {
-            in = new BufferedInputStream(new FileInputStream(dest));
-            int size = getSize(dest);
-            ZipInputStream zin = new ZipInputStream(in);
-            for(int i = 0; i<size; i++){
-                sum.add(zin.getNextEntry().getName());
-            }
+               while((sb = zin.getNextEntry())!= null) {
+                   if (sb.isDirectory()) {
+                       sum.add(String.valueOf(sb));
+                   } else {
+                       sum.add(sb.getName());
+                   }
+               }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -126,21 +157,8 @@ public class Zip4Util {
         }
         assert in != null;
         in.close();
-      return  sum;
-    }
-
-    public static int getSize(String file) throws Exception {
-        ZipFile zf = new ZipFile(file);
-        InputStream in = new BufferedInputStream(new FileInputStream(file));
-        ZipInputStream zin = new ZipInputStream(in);
-        ZipEntry ze;
-        int i=0;
-        while ((ze = zin.getNextEntry()) != null) {
-            i++;
-        }
         zin.closeEntry();
-        in.close();
-        return i;
+      return  sum;
     }
     /**
      * 压缩

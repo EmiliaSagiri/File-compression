@@ -40,8 +40,10 @@ public class MainActivity extends Activity {
     private ArrayAdapter<String> adapter;
     static List<Product> productList = new ArrayList<>();
     static List<Product> productList2 = new ArrayList<>();
+    static ArrayList<String> list = new ArrayList<>();
     public final static String TAG = "666";
     public final static int LJJ = 1;
+    public final static int SB = 2;
     @SuppressLint("HandlerLeak")
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -78,16 +80,15 @@ public class MainActivity extends Activity {
             super.handleMessage(msg2);
             switch (msg2.what) {
                 case LJJ:
-                    int size = 0;
                     try {
-                        size = Zip4Util.getSize("/vr/ASR/b.zip");
-                    } catch (Exception e) {
+                        list = Zip4Util.fileEntry("/vr/test/1.zip");
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    for (int i = 0; i < size; i++) {
+                    for (int i = 0; i < list.size(); i++) {
                         Product a = null;
                         try {
-                            a = new Product(Zip4Util.fileEntry("/vr/ASR/b.zip").get(i));
+                            a = new Product(list.get(i));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -95,8 +96,24 @@ public class MainActivity extends Activity {
                     }
                     setData();
                     break;
-
+                case SB:
+                    try {
+                        list = Zip4Util.fileEntry("/vr/test/1.zip");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    for (int i = 0; i < list.size(); i++) {
+                        Product b = null;
+                        try {
+                            b = new Product(list.get(i));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        productList.add(b);
+                    }
+                    break;
             }
+
         };
 
     };
@@ -104,45 +121,23 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView = findViewById(R.id.sb);
-        btn = findViewById(R.id.add);
-        progressBar1 = findViewById(R.id.probar);
-        tv2 = findViewById(R.id.Spinnertext);
-        spinner = findViewById(R.id.hh);
-        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,x);//设置下拉列表的风格
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);//将adapter 添加到spinner中
-        spinner.setAdapter(adapter);//添加事件Spinner事件监听
-        spinner.setOnItemSelectedListener(new SpinnerSelectedListener());//设置默认值
-        spinner.setVisibility(View.VISIBLE);
+        Initialize();//初始化
+        Message message1 = new Message();//利用handler传值到recyclerview
+        message1.what=SB;
+        sb.sendMessage(message1);
         RecyclerView recyclerView1 = findViewById(R.id.names);
         MyAdapter adapter1 = new MyAdapter(productList);
         recyclerView1.setAdapter(adapter1);
-
         LinearLayoutManager layoutManagera = new LinearLayoutManager(this);
         recyclerView1.setLayoutManager(layoutManagera);
         layoutManagera.setOrientation(LinearLayoutManager.VERTICAL);
-
-        int size = 0;
-        try {
-            size = Zip4Util.getSize("/vr/ASR/b.zip");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        for (int i = 0; i < size; i++) {
-            Product a = null;
-            try {
-                a = new Product(Zip4Util.fileEntry("/vr/ASR/b.zip").get(i));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            productList.add(a);
-        }
-
         Thread th2 = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/ASR/b.zip", null, handler);
+//                     Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/1.zip", null, handler);
+                       Zip4Util.doZipFilesWithPassword(new File("/vr/sb"),"/vr/test/1.zip",null);
+//                      Zip4Util.zip("/vr/1.jpeg","/vr/test/1.zip",null);
                     Message message2 = new Message();
                     message2.what=LJJ;
                     sb.sendMessage(message2);
@@ -155,10 +150,8 @@ public class MainActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                th2.start();
-                Log.i(TAG, String.valueOf(productList2));
+                th2.start();//线程开启，该方法只能用一次
             }
-
         });
 
     }
@@ -173,6 +166,9 @@ public class MainActivity extends Activity {
         public void onNothingSelected(AdapterView<?> arg0) {
         }
     }
+    /*
+    *给第二个recyclerview赋值
+     */
     public void setData(){
         RecyclerView recyclerView2 = findViewById(R.id.md5s);
         MyAdapter2 adapter2 = new MyAdapter2(productList2);
@@ -180,5 +176,20 @@ public class MainActivity extends Activity {
         LinearLayoutManager layoutManagerb = new LinearLayoutManager(this);
         recyclerView2.setLayoutManager(layoutManagerb);
         layoutManagerb.setOrientation(LinearLayoutManager.VERTICAL);
+    }
+    /*
+    *给控件初始化
+     */
+    public void Initialize(){
+        textView = findViewById(R.id.sb);
+        btn = findViewById(R.id.add);
+        progressBar1 = findViewById(R.id.probar);
+        tv2 = findViewById(R.id.Spinnertext);
+        spinner = findViewById(R.id.hh);
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,x);//设置下拉列表的风格
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);//将adapter 添加到spinner中
+        spinner.setAdapter(adapter);//添加事件Spinner事件监听
+        spinner.setOnItemSelectedListener(new SpinnerSelectedListener());//设置默认值
+        spinner.setVisibility(View.VISIBLE);
     }
 }
