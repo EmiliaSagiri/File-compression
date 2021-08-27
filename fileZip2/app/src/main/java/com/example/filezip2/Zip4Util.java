@@ -92,11 +92,8 @@ public class Zip4Util {
                 parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_STANDARD);//加密方式
                 parameters.setPassword(password.toCharArray());//设置密码
             }
-//            if (password != null){
-//                zipFile.addFolder("/vr/sb",parameters);//添加文件夹"/vr/sb"
-//            }
-           // zipFile.addFolder("/vr/sb",parameters);//添加文件夹"/vr/sb"
             is = new FileInputStream(file);//创建一个输入流的对象
+            final ProgressMonitor progressMonitor2 = zipFile.getProgressMonitor();
             Thread thread = new Thread(new Runnable()
             {
                 @Override
@@ -106,7 +103,7 @@ public class Zip4Util {
                     Message msg = null;
                     try
                     {
-                        int precentDone = 0;
+                        int precentDone2 = 0;
                         if (handler == null)
                         {
                             return;
@@ -115,14 +112,15 @@ public class Zip4Util {
                         do {
                             // 每隔50ms,发送一个进度出去
                             Thread.sleep(50);
-                            precentDone +=2;
+                            precentDone2 = precentDone2 + (progressMonitor2.getPercentDone() + 5);
+                            Log.i(TAG, String.valueOf(precentDone2));
                             bundle = new Bundle();
-                            bundle.putInt(CompressStatus.PERCENT, precentDone);
+                            bundle.putInt(CompressStatus.PERCENT, precentDone2);
                             msg = new Message();
                             msg.what = CompressStatus.HANDLING;
                             msg.setData(bundle);
                             handler.sendMessage(msg); //通过 Handler将进度扔出去
-                        } while (precentDone<99);
+                        } while (precentDone2<99);
                             Thread.sleep(4000);
                             handler.sendEmptyMessage(CompressStatus.COMPLETED);
                     }
@@ -144,6 +142,7 @@ public class Zip4Util {
             });//资源调用结束失败
             thread.start();
             long startTime2 = System.currentTimeMillis();
+            zipFile.setRunInThread(true);
             zipFile.addStream(is, parameters);//不通过压缩，通过流的方式添加文件到压缩包.
             long consumingTime2 = (System.currentTimeMillis()- startTime2);
             ToastUtil.showToast("导入"+consumingTime2+"毫秒");

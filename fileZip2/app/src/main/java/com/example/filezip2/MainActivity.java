@@ -34,7 +34,8 @@ public class MainActivity extends Activity {
     private ProgressBar progressBar1;
     private TextView textView;
     private  Button btn;
-    private static final String[] x={"/vr/1.jpeg","/vr/2.jpeg","/vr/3.jpeg","/vr/sb/sb.txt"};
+    private  Button btn2;
+    private static final String[] x={"/vr/1.jpeg","/vr/2.jpeg","/vr/3.jpeg","/vr/sb/sb.txt","/vr/sb/test.txt"};
     private TextView tv2 ;
     private Spinner spinner;
     private ArrayAdapter<String> adapter;
@@ -88,7 +89,7 @@ public class MainActivity extends Activity {
             switch (msg2.what) {
                 case LJJ:
                     try {
-                        list = Zip4Util.fileEntry("/vr/test/5.zip");
+                        list = Zip4Util.fileEntry("/vr/test/a.zip");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -105,7 +106,7 @@ public class MainActivity extends Activity {
                     break;
                 case SB:
                     try {
-                        list = Zip4Util.fileEntry("/vr/test/5.zip");
+                        list = Zip4Util.fileEntry("/vr/test/a.zip");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -138,30 +139,23 @@ public class MainActivity extends Activity {
         LinearLayoutManager layoutManagera = new LinearLayoutManager(this);
         recyclerView1.setLayoutManager(layoutManagera);
         layoutManagera.setOrientation(LinearLayoutManager.VERTICAL);
-
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
+        View.OnClickListener myOnClickListener = new View.OnClickListener() {
             public void onClick(View v) {
-                Thread th2 = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/5.zip", null, handler);
-                            //                  Zip4Util.AddFolder("vr/sb","vr/test/4.zip",null);
-                            //                  Zip4Util.zip("/vr/1.jpeg","/vr/test/5.zip",null);
-                            Message message2 = new Message();
-                            message2.what=LJJ;
-                            sb.sendMessage(message2);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-                th2.start();//线程开启，该方法只能用一次
-                productList2.clear();//清空数组，方便重复赋值
-            }
-        });
+                DownloadThread thread2 =new DownloadThread();
+                switch (v.getId()) {
+                    case R.id.add:
+                        thread2.start();
+                        productList2.clear();//清空数组，方便重复赋值
+                        break;
+                    case R.id.delete:
+                        thread2.interrupt();
+                        break;
 
+                }
+            }
+        };
+        btn.setOnClickListener(myOnClickListener);
+        btn2.setOnClickListener(myOnClickListener);
     }
     /*
     *spinner控制下拉框，调用数组X 并给textview控件赋值
@@ -194,6 +188,7 @@ public class MainActivity extends Activity {
     public void Initialize(){
         textView = findViewById(R.id.sb);
         btn = findViewById(R.id.add);
+        btn2 = findViewById(R.id.delete);
         progressBar1 = findViewById(R.id.probar);
         tv2 = findViewById(R.id.Spinnertext);
         spinner = findViewById(R.id.hh);
@@ -202,5 +197,23 @@ public class MainActivity extends Activity {
         spinner.setAdapter(adapter);//添加事件Spinner事件监听
         spinner.setOnItemSelectedListener(new SpinnerSelectedListener());//设置默认值
         spinner.setVisibility(View.VISIBLE);
+    }
+    class DownloadThread extends Thread{
+
+        public void run() {
+                try {
+                    System.out.println( "begin run" );
+                       Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/a.zip", null, handler);
+                        //                  Zip4Util.AddFolder("vr/sb","vr/test/4.zip",null);
+//                                               Zip4Util.zip("/vr/1.jpeg","/vr/test/a.zip",null);
+                        Message message2 = new Message();
+                        message2.what = LJJ;
+                        sb.sendMessage(message2);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+        }
     }
 }
