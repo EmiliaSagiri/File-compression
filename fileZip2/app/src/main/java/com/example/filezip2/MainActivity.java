@@ -36,7 +36,9 @@ public class MainActivity extends Activity {
     private  Button btn;
     private  Button btn2;
     private static final String[] x={"/vr/1.jpeg","/vr/2.jpeg","/vr/3.jpeg","/vr/sb/sb.txt","/vr/sb/test.txt"};
+    private static final String[] y={"1.jpeg","2.jpeg","3.jpeg","sb.txt","test.txt",};
     private TextView tv2 ;
+    private TextView tv3 ;
     private Spinner spinner;
     private ArrayAdapter<String> adapter;
     static List<Product> productList = new ArrayList<>();
@@ -130,9 +132,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Initialize();//初始化
-        Message message1 = new Message();//利用handler传值到recyclerview
-        message1.what=SB;
-        sb.sendMessage(message1);
+        TestThread thread1 = new TestThread();
+        thread1.start();
         RecyclerView recyclerView1 = findViewById(R.id.names);
         MyAdapter adapter1 = new MyAdapter(productList);
         recyclerView1.setAdapter(adapter1);
@@ -148,14 +149,15 @@ public class MainActivity extends Activity {
                         productList2.clear();//清空数组，方便重复赋值
                         break;
                     case R.id.delete:
-                        thread2.interrupt();
-                        break;
-
+                        DeleteThread thread3 = new DeleteThread();
+                        thread3.start();
+                        productList2.clear();
                 }
             }
         };
         btn.setOnClickListener(myOnClickListener);
         btn2.setOnClickListener(myOnClickListener);
+
     }
     /*
     *spinner控制下拉框，调用数组X 并给textview控件赋值
@@ -165,7 +167,6 @@ public class MainActivity extends Activity {
         public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
                                    long arg3) {
             tv2.setText(x[arg2]);
-
         }
 
         public void onNothingSelected(AdapterView<?> arg0) {
@@ -191,6 +192,7 @@ public class MainActivity extends Activity {
         btn2 = findViewById(R.id.delete);
         progressBar1 = findViewById(R.id.probar);
         tv2 = findViewById(R.id.Spinnertext);
+        tv3 = findViewById(R.id.load);
         spinner = findViewById(R.id.hh);
         adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,x);//设置下拉列表的风格
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);//将adapter 添加到spinner中
@@ -199,21 +201,44 @@ public class MainActivity extends Activity {
         spinner.setVisibility(View.VISIBLE);
     }
     class DownloadThread extends Thread{
-
         public void run() {
                 try {
-                    System.out.println( "begin run" );
-                       Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/a.zip", null, handler);
-                        //                  Zip4Util.AddFolder("vr/sb","vr/test/4.zip",null);
-//                                               Zip4Util.zip("/vr/1.jpeg","/vr/test/a.zip",null);
-                        Message message2 = new Message();
-                        message2.what = LJJ;
-                        sb.sendMessage(message2);
+                    DownloadThread.sleep(1000);
+                    System.out.println("begin run");
+                 Zip4Util.addFile(String.valueOf(tv2.getText()), "/vr/test/a.zip", null, handler);
+                    //                  Zip4Util.AddFolder("vr/sb","vr/test/4.zip",null);
+                   //                                   Zip4Util.zip("/vr/1.jpeg","/vr/test/a.zip",null);
+                    Message message2 = new Message();
+                    message2.what = LJJ;
+                    sb.sendMessage(message2);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
         }
+    }
+    class DeleteThread extends Thread{
+
+        public void run(){
+            try {
+                Zip4Util.deleteFile("/vr/test/a.zip", String.valueOf(tv2.getText()).substring(String.valueOf(tv2.getText()).lastIndexOf("/")+1));
+                Message message2 = new Message();
+                message2.what = LJJ;
+                sb.sendMessage(message2);
+            } catch (ZipException | net.lingala.zip4j.exception.ZipException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+    class TestThread extends Thread{
+
+        public void run(){
+            Message message1 = new Message();//利用handler传值到recyclerview
+            message1.what=SB;
+            sb.sendMessage(message1);
+        }
+
     }
 }

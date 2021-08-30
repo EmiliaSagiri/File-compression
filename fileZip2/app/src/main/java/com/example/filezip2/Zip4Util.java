@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jConstants;
@@ -16,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -288,6 +291,31 @@ public class Zip4Util {
         thread.start();
         zipFile.setRunInThread(true);
         zipFile.addFiles(list,parameters);
+    }
+
+    public static void deleteFile(String zipFile, String delfile)
+            throws ZipException, net.lingala.zip4j.exception.ZipException {
+        ZipFile zip = new ZipFile(zipFile);
+        zip.setFileNameCharset("GBK");
+        List<FileHeader> list = zip.getFileHeaders();
+        String dname =null;
+        boolean flag = true;
+        // 如果采用forEach会出现并发异常,采用for可以解决，
+        // 但是索引移位问题会遗漏head
+        for (int i = 0; i < list.size(); i++) {
+            dname = list.get(i).getFileName();
+            // 在匹配的时候可以用正则或者endwith
+            if (dname.endsWith(delfile)) {
+                zip.removeFile(dname);
+                // 解决索引移位问题
+                --i;
+                flag = false;
+                System.out.println(dname + "文件删除成功！");
+            }
+        }
+        if (flag) {
+            System.out.println("没有找到你要删除的文件！");
+        }
     }
     /**
      * 解压

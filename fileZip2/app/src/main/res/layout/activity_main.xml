@@ -77,7 +77,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="这是什么鬼"
         android:textSize="50sp"
         android:textColor="@color/purple_700"
         android:id="@+id/Spinnertext"/>
@@ -87,6 +86,13 @@
         android:layout_gravity="center"
         android:outlineAmbientShadowColor="@color/purple_700"
         android:id="@+id/hh"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="50sp"
+        android:textColor="@color/purple_700"
+        android:id="@+id/load"/>
 
 
 </LinearLayout>
